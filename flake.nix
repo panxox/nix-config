@@ -11,7 +11,7 @@
   outputs = { self, nixpkgs, home-manager, ... }@inputs: {
     nixosConfigurations = {
       # 对应你的主机名
-      nixvm = nixpkgs.lib.nixosSystem {
+      nixos-vm = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
           ./hosts/nixos-vm/default.nix # 加载这台机器的底层系统
