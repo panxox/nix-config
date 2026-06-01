@@ -3,7 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    
+
     home-manager.url = "github:nix-community/home-manager/release-26.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
   };
@@ -13,6 +13,7 @@
       # 对应你的主机名
       nixos-vm = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
+        specialArgs = { inherit inputs; };
         modules = [
           ./hosts/nixos-vm/default.nix # 加载这台机器的底层系统
 
@@ -25,6 +26,18 @@
           }
         ];
       };
+    };
+
+    # 代码格式化
+    formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixpkgs-fmt;
+
+    # 开发环境 (nix develop 进入)
+    devShells.x86_64-linux.default = nixpkgs.legacyPackages.x86_64-linux.mkShell {
+      packages = with nixpkgs.legacyPackages.x86_64-linux; [
+        nil          # Nix LSP 语言服务器
+        nixpkgs-fmt  # Nix 代码格式化工具
+        statix       # Nix 静态分析 / lint 工具
+      ];
     };
   };
 }

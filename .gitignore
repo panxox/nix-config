@@ -1,0 +1,14 @@
+# Nix 构建产物
+result
+result-*
+
+# 编辑器临时文件
+*.swp
+*.swo
+*~
+
+# direnv
+.direnv
+
+# 系统生成
+.DS_Store

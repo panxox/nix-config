@@ -1,8 +1,9 @@
-{ config, pkgs, ... }:
+{ pkgs, ... }:
 
 {
   imports = [
-    ./shell/zsh.nix # 引入抽离出去的终端配置
+    ./shell/zsh.nix   # Zsh + Git 终端配置
+    ./desktop.nix     # Niri 桌面美化（GTK/Qt/waybar/mako/fuzzel/kitty）
   ];
 
   home.username = "nixosvm";
