@@ -37,7 +37,7 @@ in
   environment.systemPackages = with pkgs; [
     polkit_gnome
     polkit-agent
-    libsForQt5.qt5ct    # Qt5 主题配置
-    libsForQt6.qt6ct    # Qt6 主题配置
+    libsForQt5.qt5ct    # 或者写成 pkgs.qt5ct
+    pkgs.qt6ct          # 直接使用 pkgs.qt6ct，或者写成 pkgs.qt6Packages.qt6ct
   ];
 }
