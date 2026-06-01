@@ -22,6 +22,8 @@
   virtualisation.vmware.guest.enable = true;
   services.xserver.videoDrivers = [ "vmware" ];
 
+
+  programs.zsh.enable = true;
   # 用户账户基础定义
   users.users.nixosvm = {
     isNormalUser = true;
