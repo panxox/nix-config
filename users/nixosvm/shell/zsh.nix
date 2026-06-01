@@ -19,8 +19,8 @@
     enable = true;
     settings = {
       user = {
-        name = "Your Name";
-        email = "your-email@example.com";
+        name = "panxox";
+        email = "2279827640@qq.com";
       };
       init = {
         defaultBranch = "main";
