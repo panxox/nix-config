@@ -1,6 +1,4 @@
-# Niri 桌面美化 — Catppuccin Mocha (蓝色强调色)
-# 聚合全部用户级桌面 ricing 配置
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, dms, ... }:
 
 let
   # ===========================================================================
@@ -38,80 +36,112 @@ let
 in
 {
   # ===========================================================================
-  # Niri 合成器配置文件部署
+  # DMS (DankMaterialShell) 配置
   # ===========================================================================
-  xdg.configFile."niri/config.kdl".source =
-    ../../modules/desktop/niri-config.kdl;
+  programs.dank-material-shell = {
+    enable = true;
+    enableDynamicTheming = true;
+    enableSystemMonitoring = true;
+    systemd.enable = true;
+
+    session = {
+      # WALLPAPER
+      wallpaperPath = "${config.home.homeDirectory}/.local/share/wallpapers/wallpaper-dark.png";
+      wallpaperPathLight = "${config.home.homeDirectory}/.local/share/wallpapers/wallpaper-light.png";
+      wallpaperPathDark = "${config.home.homeDirectory}/.local/share/wallpapers/wallpaper-dark.png";
+      perModeWallpaper = true;
+      perMonitorWallpaper = false;
+      wallpaperTransition = "fade";
+      wallpaperCyclingEnabled = false;
+
+      # LOCATION (Shanghai)
+      latitude = 31.23;
+      longitude = 121.47;
+
+      # NIGHT MODE
+      nightModeEnabled = false;
+      nightModeTemperature = 4500;
+      nightModeAutoEnabled = true;
+      nightModeAutoMode = "location";
+      nightModeStartHour = 18;
+      nightModeEndHour = 6;
+      nightModeUseIPLocation = false;
+
+      # AUTO THEME
+      themeModeAutoEnabled = true;
+      themeModeAutoMode = "location";
+      themeModeStartHour = 18;
+      themeModeEndHour = 6;
+      themeModeShareGammaSettings = true;
+
+      # WEATHER
+      weatherLocation = "Shanghai";
+      weatherCoordinates = "31.23,121.47";
+      weatherHourlyDetailed = true;
+
+      # MISC
+      showThirdPartyPlugins = false;
+      searchAppActions = true;
+      configVersion = 3;
+    };
+  };
+
+  # ===========================================================================
+  # Niri 配置符号链接 (mkOutOfStoreSymlink — DMS 可写)
+  # ===========================================================================
+  xdg.configFile = let niriDir = "${config.home.homeDirectory}/nixos-config/niri"; in {
+    "niri/config.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/config.kdl";
+    "niri/dms/alttab.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/alttab.kdl";
+    "niri/dms/binds.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/binds.kdl";
+    "niri/dms/colors.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/colors.kdl";
+    "niri/dms/cursor.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/cursor.kdl";
+    "niri/dms/layout.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/layout.kdl";
+    "niri/dms/outputs.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/outputs.kdl";
+    "niri/dms/windowrules.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/windowrules.kdl";
+    "niri/dms/wpblur.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/wpblur.kdl";
+  };
+
+  # ===========================================================================
+  # 壁纸文件
+  # ===========================================================================
+  home.file.".local/share/wallpapers/wallpaper-dark.png".source = ../../assets/wallpaper-dark.png;
+  home.file.".local/share/wallpapers/wallpaper-light.png".source = ../../assets/wallpaper-light.png;
 
   # ===========================================================================
   # 截图目录自动创建
   # ===========================================================================
   home.activation.createScreenshotDir =
     lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      mkdir -p "$HOME/Pictures/screenshots"
+      mkdir -p "$HOME/Pictures/Screenshots"
     '';
 
   # ===========================================================================
-  # GTK 主题（Catppuccin Mocha Blue + Papirus 图标 + Catppuccin 光标）
+  # DMS 头像设置 (systemd oneshot + 重试)
   # ===========================================================================
-  gtk = {
-    enable = true;
-
-    theme = {
-      name = "catppuccin-mocha-blue-standard";
-      package = pkgs.catppuccin-gtk.override {
-        accents = [ "blue" ];
-        size = "standard";
-        variant = "mocha";
-      };
+  systemd.user.services.dms-set-avatar = {
+    Unit = {
+      Description = "Set DMS profile avatar after DMS starts";
+      After = [ "graphical-session.target" ];
     };
-
-    iconTheme = {
-      name = "Papirus-Dark";
-      package = pkgs.papirus-icon-theme;
+    Service = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.writeShellScript "dms-set-avatar" ''
+        for i in $(seq 1 30); do
+          if ${dms.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/dms ipc profile setImage $HOME/nixos-config/assets/avatar.jpg 2>&1 | grep -q SUCCESS; then
+            exit 0
+          fi
+          sleep 1
+        done
+        exit 1
+      ''}";
     };
-
-    cursorTheme = {
-      name = "catppuccin-mocha-dark-cursors";
-      package = pkgs.catppuccin-cursors.mochaDark;
-      size = 24;
-    };
-
-    font = {
-      name = font-name;
-      size = 11;
-    };
-
-    gtk3.extraConfig = {
-      gtk-application-prefer-dark-theme = 1;
-    };
-
-    gtk4.extraConfig = {
-      gtk-application-prefer-dark-theme = 1;
+    Install = {
+      WantedBy = [ "graphical-session.target" ];
     };
   };
 
-  # dconf: 强制 libadwaita / GNOME 应用使用深色模式
-  dconf.settings = {
-    "org/gnome/desktop/interface".color-scheme = "prefer-dark";
-  };
-
   # ===========================================================================
-  # Qt 主题（通过环境变量 + qt5ct / qt6ct 配置工具）
-  # ===========================================================================
-  home.sessionVariables = {
-    QT_QPA_PLATFORMTHEME = "qt5ct";
-    QT_STYLE_OVERRIDE = "kvantum";
-    QT_AUTO_SCREEN_SCALE_FACTOR = "1";
-  };
-
-  # ===========================================================================
-  # 字体
-  # ===========================================================================
-  fonts.fontconfig.enable = true;
-
-  # ===========================================================================
-  # Waybar（状态栏）
+  # Waybar（状态栏）— Catppuccin Mocha
   # ===========================================================================
   programs.waybar = {
     enable = true;
@@ -279,7 +309,7 @@ in
   };
 
   # ===========================================================================
-  # Mako（通知守护进程）
+  # Mako（通知守护进程）— Catppuccin Mocha
   # ===========================================================================
   services.mako = {
     enable = true;
@@ -309,7 +339,7 @@ in
   };
 
   # ===========================================================================
-  # Fuzzel（应用启动器）
+  # Fuzzel（应用启动器）— Catppuccin Mocha
   # ===========================================================================
   programs.fuzzel = {
     enable = true;
@@ -400,63 +430,6 @@ in
   };
 
   # ===========================================================================
-  # Starship（Shell 提示符美化）
-  # ===========================================================================
-  programs.starship = {
-    enable = true;
-    settings = {
-      add_newline = false;
-      format = lib.concatStrings [
-        "$username"
-        "$hostname"
-        "$directory"
-        "$git_branch"
-        "$git_status"
-        "$nix_shell"
-        "$line_break"
-        "$character"
-      ];
-
-      character = {
-        success_symbol = "[>](bold #${mocha-blue})";
-        error_symbol = "[>](bold #${mocha-red})";
-      };
-
-      directory = {
-        style = "#${mocha-lavender}";
-        truncation_length = 5;
-      };
-
-      git_branch = {
-        style = "#${mocha-peach}";
-        symbol = "";
-      };
-
-      git_status = {
-        style = "#${mocha-maroon}";
-      };
-
-      username = {
-        show_always = true;
-        style_user = "#${mocha-green}";
-        format = "[$user]($style) ";
-      };
-
-      hostname = {
-        ssh_only = false;
-        style = "#${mocha-blue}";
-        format = "on [$hostname]($style) ";
-      };
-
-      nix_shell = {
-        symbol = "";
-        style = "#${mocha-sky}";
-        format = "via [$symbol]($style) ";
-      };
-    };
-  };
-
-  # ===========================================================================
   # Swaylock（屏幕锁定）— Catppuccin Mocha 配色
   # ===========================================================================
   programs.swaylock = {
@@ -484,46 +457,4 @@ in
       "text-wrong-color" = mocha-text;
     };
   };
-
-  # ===========================================================================
-  # 用户级桌面包
-  # ===========================================================================
-  home.packages = with pkgs; [
-    # 终端
-    kitty
-
-    # 壁纸守护进程
-    swww
-
-    # 截图工具
-    grim
-    slurp
-
-    # Wayland 剪贴板
-    wl-clipboard
-
-    # 媒体 / 背光控制
-    brightnessctl
-    playerctl
-
-    # 启动器 / 通知 / 锁屏（主题已在各自模块中配置）
-    fuzzel
-    mako
-    swaylock
-
-    # 状态栏
-    waybar
-
-    # GTK 主题预览 / 配置工具
-    nwg-look
-
-    # 字体
-    nerd-fonts.jetbrains-mono
-
-    # 图标主题
-    papirus-icon-theme
-
-    # 光标主题
-    catppuccin-cursors.mochaDark
-  ];
 }

@@ -1,43 +1,73 @@
 {
-  description = "我的现代化模块化 NixOS 配置文件";
+  description = "NixOS configuration for nixos-vm with niri + DMS";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
-    home-manager.url = "github:nix-community/home-manager/release-26.05";
-    home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    niri = {
+      url = "github:sodiboo/niri-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    dms = {
+      url = "github:AvengeMedia/DankMaterialShell";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    dgop = {
+      url = "github:AvengeMedia/dgop";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    home-manager = {
+      url = "github:nix-community/home-manager/release-26.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, home-manager, ... }@inputs: {
-    nixosConfigurations = {
-      # 对应你的主机名
-      nixos-vm = nixpkgs.lib.nixosSystem {
+  outputs = inputs@{ nixpkgs, home-manager, ... }:
+    let
+      username = "nixosvm";   # ← 改这里即可替换用户名
+      hostname = "nixos-vm";  # ← 改这里即可替换主机名
+    in
+    {
+      nixosConfigurations.${hostname} = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         specialArgs = { inherit inputs; };
         modules = [
-          ./hosts/nixos-vm/default.nix # 加载这台机器的底层系统
-
-          # 整合 Home Manager
+          ./hosts/${hostname}
           home-manager.nixosModules.home-manager
           {
+            my = { inherit username hostname; };
+            nixpkgs.overlays = [
+              (final: prev: {
+                xwayland-satellite = inputs.niri.packages.${final.system}.xwayland-satellite-unstable;
+              })
+            ];
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            home-manager.users.nixosvm = import ./users/nixosvm/home.nix;
+            home-manager.backupFileExtension = "backup";
+            home-manager.users.${username} = { config, pkgs, ... }: {
+              imports = [
+                ./modules/home
+                inputs.dms.homeModules.dank-material-shell
+              ];
+            };
+            home-manager.extraSpecialArgs = inputs // { inherit username hostname; };
           }
         ];
       };
-    };
 
-    # 代码格式化
-    formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixpkgs-fmt;
+      # 代码格式化
+      formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixpkgs-fmt;
 
-    # 开发环境 (nix develop 进入)
-    devShells.x86_64-linux.default = nixpkgs.legacyPackages.x86_64-linux.mkShell {
-      packages = with nixpkgs.legacyPackages.x86_64-linux; [
-        nil          # Nix LSP 语言服务器
-        nixpkgs-fmt  # Nix 代码格式化工具
-        statix       # Nix 静态分析 / lint 工具
-      ];
+      # 开发环境 (nix develop 进入)
+      devShells.x86_64-linux.default = nixpkgs.legacyPackages.x86_64-linux.mkShell {
+        packages = with nixpkgs.legacyPackages.x86_64-linux; [
+          nil          # Nix LSP 语言服务器
+          nixpkgs-fmt  # Nix 代码格式化工具
+          statix       # Nix 静态分析 / lint 工具
+        ];
+      };
     };
-  };
 }
