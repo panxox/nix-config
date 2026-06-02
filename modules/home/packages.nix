@@ -38,7 +38,7 @@
     kitty
 
     # 壁纸守护进程
-    swww
+    awww
 
     # 截图工具
     grim

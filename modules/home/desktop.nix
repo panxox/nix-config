@@ -313,20 +313,22 @@ in
   # ===========================================================================
   services.mako = {
     enable = true;
-    defaultTimeout = 5000;
-    ignoreTimeout = false;
-    maxVisible = 5;
-    layer = "overlay";
-    anchor = "top-right";
-    width = 400;
-    height = 150;
-    margin = "10";
-    padding = "15";
-    borderSize = 2;
-    borderRadius = 12;
-    backgroundColor = "#${mocha-base}";
-    borderColor = "#${mocha-blue}";
-    textColor = "#${mocha-text}";
+    settings = {
+      default-timeout = 5000;
+      ignore-timeout = false;
+      max-visible = 5;
+      layer = "overlay";
+      anchor = "top-right";
+      width = 400;
+      height = 150;
+      margin = "10";
+      padding = "15";
+      border-size = 2;
+      border-radius = 12;
+      background-color = "#${mocha-base}";
+      border-color = "#${mocha-blue}";
+      text-color = "#${mocha-text}";
+    };
     extraConfig = ''
       [urgency=low]
       border-color=#${mocha-surface0}
