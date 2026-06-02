@@ -2,7 +2,7 @@
 
 基于 [DankMaterialShell](https://danklinux.com/) 的 NixOS + niri 桌面配置，参考 [dms-starter](https://github.com/Mooling0602/dms-starter) 架构。
 
-> 生成日期：2026-06-01
+> 生成日期：2026-06-02
 
 ## 目录结构
 
@@ -73,6 +73,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    nix-packages = {
+      url = "github:Mooling0602/nix-packages";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -96,6 +101,9 @@
             nixpkgs.overlays = [
               (final: prev: {
                 xwayland-satellite = inputs.niri.packages.${final.system}.xwayland-satellite-unstable;
+              })
+              (final: prev: {
+                reasonix = inputs.nix-packages.packages.${final.system}.reasonix;
               })
             ];
             home-manager.useGlobalPkgs = true;
@@ -395,6 +403,15 @@
     # 开发工具
     gcc
 
+    # 效率工具
+    lazygit
+    glow          # Markdown 阅读器
+    zellij        # 终端复用器
+    yazi          # 终端文件管理器
+
+    # AI 助手
+    reasonix
+
     # 桌面应用
     kitty         # 终端
     swww          # 壁纸守护进程
@@ -444,13 +461,13 @@
     defaultFonts = {
       sansSerif = [ "Sarasa UI SC" ];
       serif = [ "Noto Serif CJK SC" ];
-      monospace = [ "JetBrainsMono Nerd Font" ];
+      monospace = [ "Maple Mono NF CN" ];
     };
   };
 
   gtk = {
     enable = true;
-    font.name = "JetBrainsMono Nerd Font";
+    font.name = "Maple Mono NF CN";
     font.size = 11;
   };
 

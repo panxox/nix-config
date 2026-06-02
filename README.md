@@ -4,7 +4,7 @@
 
 ## 结构
 
-> 当前版本：2026-06-01
+> 当前版本：2026-06-02
 
 ```
 ├── flake.nix                     # Flake 入口（username let 绑定在此）
@@ -112,6 +112,30 @@ nsw   # sudo nixos-rebuild switch --flake ~/nixos-config/#nixos-vm
 | Shell 提示符 | starship | Catppuccin Mocha |
 | GTK 主题 | adw-gtk3 | DMS 动态 |
 | Qt 主题 | qt6ct + Breeze | 跟随系统 |
+| AI 助手 | reasonix | — |
+
+## 预装工具
+
+| 类别 | 包 |
+|------|-----|
+| 终端复用 | zellij, tmux |
+| 文件管理 | yazi |
+| Git | lazygit |
+| Markdown | glow |
+| 监控 | btop, htop |
+| 网络 | mtr, dnsutils |
+| 截图 | grim, slurp |
+| 锁屏 | swaylock |
+| 启动器 | fuzzel |
+
+## 字体
+
+| 层级 | 用途 | 字体 |
+|------|------|------|
+| 系统级 | greeter / 全局回退 | Sarasa Gothic, Noto Serif CJK SC, Maple Mono NF CN |
+| 用户级 | 等宽 / 终端 | Maple Mono NF CN |
+| 用户级 | 无衬线 | Sarasa UI SC |
+| 用户级 | 衬线 | Noto Serif CJK SC |
 
 ## 快捷键
 

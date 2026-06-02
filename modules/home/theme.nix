@@ -27,7 +27,7 @@
     defaultFonts = {
       sansSerif = [ "Sarasa UI SC" ];
       serif = [ "Noto Serif CJK SC" ];
-      monospace = [ "JetBrainsMono Nerd Font" ];
+      monospace = [ "Maple Mono NF CN" ];
     };
   };
 
@@ -35,7 +35,7 @@
   gtk = {
     enable = true;
     font = {
-      name = "JetBrainsMono Nerd Font";
+      name = "Maple Mono NF CN";
       size = 11;
     };
   };
@@ -62,5 +62,7 @@
     libsForQt5.qt5ct
     kdePackages.breeze
     kdePackages.plasma-integration
+    kdePackages.qqc2-desktop-style
+    kdePackages.kservice
   ];
 }

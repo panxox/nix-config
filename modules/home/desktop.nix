@@ -31,7 +31,7 @@ let
   mocha-flamingo = "f2cdcd";
   mocha-rosewater = "f5e0dc";
 
-  font-name = "JetBrainsMono Nerd Font";
+  font-name = "Maple Mono NF CN";
   font-size = "12";
 in
 {

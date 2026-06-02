@@ -19,6 +19,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    nix-packages = {
+      url = "github:Mooling0602/nix-packages";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -42,6 +47,9 @@
             nixpkgs.overlays = [
               (final: prev: {
                 xwayland-satellite = inputs.niri.packages.${final.system}.xwayland-satellite-unstable;
+              })
+              (final: prev: {
+                reasonix = inputs.nix-packages.packages.${final.system}.reasonix;
               })
             ];
             home-manager.useGlobalPkgs = true;
