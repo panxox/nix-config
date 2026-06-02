@@ -3,6 +3,7 @@
 {
   imports = [
     ./hardware.nix
+    ./gpu.nix
     ../../modules/system/config.nix
     ../../modules/system/desktop.nix
     ../../modules/system/fonts.nix
@@ -12,6 +13,7 @@
     ../../modules/system/packages.nix
     ../../modules/system/services.nix
     ../../modules/system/users.nix
+    ../../modules/system/virtualisation.nix
   ];
 
   # ===========================================================================
@@ -24,11 +26,6 @@
   # 内核模块（VMware 音频支持）
   # ===========================================================================
   boot.kernelModules = [ "snd_hda_intel" "snd_intel8x0" ];
-
-  # ===========================================================================
-  # VMware 虚拟机特化
-  # ===========================================================================
-  virtualisation.vmware.guest.enable = true;
 
   # ===========================================================================
   # 主机名（通过 config.my.hostname 引用）

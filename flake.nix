@@ -1,5 +1,5 @@
 {
-  description = "NixOS configuration for nixos-vm with niri + DMS";
+  description = "NixOS configuration for panxox-vm with niri + DMS";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";

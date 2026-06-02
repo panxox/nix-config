@@ -6,8 +6,8 @@
     description = "Developer Account";
     shell = pkgs.zsh;
     extraGroups = [ "networkmanager" "wheel" ];
-    # 使用 mkpasswd -m yescrypt 生成哈希
-    hashedPassword = "$6$WeaqIRP7wIn1JnMe$6s2HmjpWE/z/ICp/lyLmiAKSQFNZi0IlkJngLvIE5.DtvoakL.90N4gtSF.dVyJYx2iixJuViJ3eJ6tDXZoyh0";
+    # 使用 mkpasswd -m yescrypt 生成哈希，填入下方：
+    # hashedPassword = "...";
   };
 
   programs.zsh.enable = true;

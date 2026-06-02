@@ -7,12 +7,15 @@
 > 当前版本：2026-06-02
 
 ```
-├── flake.nix                     # Flake 入口（username let 绑定在此）
+├── flake.nix                     # Flake 入口（username/hostname let 绑定在此）
 ├── flake.lock
+├── deploy.sh                     # 新机器交互式部署脚本
+├── AGENTS.md                     # AI 助手上下文文件
 ├── CONFIG.md                     # 完整配置文档（所有文件源码 + 设计决策）
-├── hosts/nixos-vm/               # 机器专属
-│   ├── default.nix               # imports + boot + VMware guest + hostname + stateVersion
-│   └── hardware.nix               # 自动生成
+├── hosts/panxox-vm/              # 机器专属
+│   ├── default.nix               # imports + boot + hostname + stateVersion
+│   ├── gpu.nix                   # GPU 驱动配置占位（VM 下为空）
+│   └── hardware.nix              # 自动生成
 ├── modules/
 │   ├── home/                     # Home Manager 模块（跨机器复用）
 │   │   ├── default.nix           # 入口
@@ -20,7 +23,8 @@
 │   │   ├── theme.nix             # Qt、fontconfig、xdg.portal、GTK、DMS 主题依赖
 │   │   ├── desktop.nix           # DMS 配置、niri symlinks、Catppuccin 应用
 │   │   ├── git.nix               # Git 用户配置
-│   │   └── shell.nix             # Zsh + Starship prompt
+│   │   ├── shell.nix             # Zsh + Starship prompt
+│   │   └── ssh.nix               # SSH 客户端配置
 │   └── system/                   # 系统模块（跨机器复用）
 │       ├── config.nix            # my.username/hostname 选项
 │       ├── desktop.nix           # dms-greeter + niri
@@ -30,7 +34,8 @@
 │       ├── nix.nix               # nix 调优 + 自动 GC
 │       ├── packages.nix          # 系统级包
 │       ├── services.nix          # PipeWire、polkit、dconf
-│       └── users.nix             # 用户 + sudo
+│       ├── users.nix             # 用户 + sudo
+│       └── virtualisation.nix    # VMware guest 支持
 ├── assets/                       # 静态资源
 │   ├── wallpaper-dark.png
 │   └── wallpaper-light.png
@@ -46,8 +51,8 @@
 ```nix
 outputs = inputs@{ nixpkgs, home-manager, ... }:
   let
-    username = "nixosvm";   # ← 改为你的用户名
-    hostname = "nixos-vm";  # ← 改为你的主机名
+    username = "panxox";      # ← 改为你的用户名
+    hostname = "panxox-vm";   # ← 改为你的主机名
   in
 ```
 
@@ -57,44 +62,35 @@ outputs = inputs@{ nixpkgs, home-manager, ... }:
 
 ```fish
 # 1. 安装 NixOS 后，克隆配置仓库
-git clone <repo-url> ~/nixos-config
+git clone <repo-url> ~/nix-config
 
-# 2. 生成硬件配置
-sudo nixos-generate-config --root / --dir ~/nixos-config/hosts/<hostname>
+# 2. 运行部署脚本（交互式）
+cd ~/nix-config && chmod +x deploy.sh && ./deploy.sh
 
-# 3. 创建机器专属 default.nix（参考 hosts/nixos-vm/default.nix）
-
-# 4. 在 flake.nix 中添加 nixosConfigurations.<hostname> 或修改现有
-
-# 5. 修改 flake.nix 中的 username/hostname
-
-# 6. 获取依赖
-nix flake update
-
-# 7. 重建
-sudo nixos-rebuild switch --flake ~/nixos-config/#<hostname>
-
-# 8. 设置密码
+# 3. 设置密码
 sudo passwd <username>
 
-# 9. 首次登录后运行 DMS 初始化
+# 4. 重建
+sudo nixos-rebuild switch --flake ~/nix-config#<hostname>
+
+# 5. 首次登录后运行 DMS 初始化
 dms setup
 ```
 
 ## 已部署机器的日常使用
 
 ```fish
-cd ~/nixos-config
+cd ~/nix-config
 
 # 修改配置 → git commit → 重建 → git push
-nsw   # sudo nixos-rebuild switch --flake ~/nixos-config/#nixos-vm
+nsw   # sudo nixos-rebuild switch --flake ~/nix-config#panxox-vm
 ```
 
 ## 工作流程
 
 1. **修改** — 编辑配置文件
 2. **提交** — `git commit`（在重建前提交，避免 dirty tree 警告）
-3. **重建验证** — `sudo nixos-rebuild switch --flake ~/nixos-config/#nixos-vm`
+3. **重建验证** — `sudo nixos-rebuild switch --flake ~/nix-config#panxox-vm`
 4. **推送** — `git push`
 
 ## 桌面应用
@@ -169,6 +165,8 @@ nsw   # sudo nixos-rebuild switch --flake ~/nixos-config/#nixos-vm
 5. **字体分两级** — 系统级 `fonts.packages`（greeter 可见）+ 用户级 `home.packages`（fontconfig 使用）。
 
 6. **用户名参数化** — `flake.nix` 的 `let username` 注入到所有模块，消除硬编码。
+
+7. **虚拟化独立模块** — `virtualisation.nix` 封装 VMware guest 配置，与机器专属配置解耦。
 
 ## Niri 配置文件管理
 

@@ -89,7 +89,7 @@ in
   # ===========================================================================
   # Niri 配置符号链接 (mkOutOfStoreSymlink — DMS 可写)
   # ===========================================================================
-  xdg.configFile = let niriDir = "${config.home.homeDirectory}/nixos-config/niri"; in {
+  xdg.configFile = let niriDir = "${config.home.homeDirectory}/nix-config/niri"; in {
     "niri/config.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/config.kdl";
     "niri/dms/alttab.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/alttab.kdl";
     "niri/dms/binds.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/binds.kdl";
@@ -127,7 +127,7 @@ in
       Type = "oneshot";
       ExecStart = "${pkgs.writeShellScript "dms-set-avatar" ''
         for i in $(seq 1 30); do
-          if ${dms.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/dms ipc profile setImage $HOME/nixos-config/assets/avatar.jpg 2>&1 | grep -q SUCCESS; then
+          if ${dms.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/dms ipc profile setImage $HOME/nix-config/assets/avatar.jpg 2>&1 | grep -q SUCCESS; then
             exit 0
           fi
           sleep 1
