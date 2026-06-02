@@ -33,7 +33,7 @@
   outputs = inputs@{ nixpkgs, home-manager, ... }:
     let
       username = "nixosvm";   # ← 改这里即可替换用户名
-      hostname = "nixos-vm";  # ← 改这里即可替换主机名
+      hostname = "nixosvm";  # ← 改这里即可替换主机名
     in
     {
       nixosConfigurations.${hostname} = nixpkgs.lib.nixosSystem {
