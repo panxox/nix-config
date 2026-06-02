@@ -50,7 +50,7 @@
               })
               (final: prev: {
                 reasonix = inputs.nix-packages.packages.${final.system}.reasonix;
-              });
+              })
             ];
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
