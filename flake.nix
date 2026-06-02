@@ -48,9 +48,9 @@
               (final: prev: {
                 xwayland-satellite = inputs.niri.packages.${final.system}.xwayland-satellite-unstable;
               })
-              (final: prev: {
-                reasonix = inputs.nix-packages.packages.${final.system}.reasonix;
-              })
+              #(final: prev: {
+               # reasonix = inputs.nix-packages.packages.${final.system}.reasonix;
+              #})
             ];
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
