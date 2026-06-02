@@ -10,7 +10,7 @@
     shellAliases = {
       ll = "ls -l";
       # 完美更新别名！指向你家目录里的绝对路径
-      nsw = "sudo nixos-rebuild switch --flake $HOME/nixos-config/#nixos-vm";
+      nsw = "sudo nixos-rebuild switch --flake $HOME/nixos-config/#nix-vm";
     };
   };
 
