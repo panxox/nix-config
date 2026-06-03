@@ -1,8 +1,8 @@
-# Nix 构建产物
+# Nix build artifacts
 result
 result-*
 
-# 编辑器临时文件
+# Editor temp files
 *.swp
 *.swo
 *~
@@ -10,5 +10,5 @@ result-*
 # direnv
 .direnv
 
-# 系统生成
+# macOS
 .DS_Store

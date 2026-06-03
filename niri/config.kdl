@@ -1,9 +1,11 @@
-// Niri config — managed in flake, symlinked via mkOutOfStoreSymlink
-// DMS includes provide: binds, colors, layout, cursor, outputs, windowrules, wpblur
+// ===========================================================================
+// Niri config — hand-maintained, symlinked via mkOutOfStoreSymlink
+// DMS-generated files in dms/ are included below; user overrides follow.
+// ===========================================================================
 
 input {
     keyboard {
-        xkb_layout "us"
+        xkb_layout "cn"
         repeat-delay 600
         repeat-rate 25
         track-layout "global"
@@ -16,7 +18,9 @@ input {
 
 screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
 
-// DMS 生成的文件（先 include，这样下面的用户覆盖可以生效）
+// ============================================================================
+// DMS-generated config files (managed by 'dms setup')
+// ============================================================================
 include "dms/alttab.kdl"
 include "dms/binds.kdl"
 include "dms/colors.kdl"
@@ -27,25 +31,21 @@ include "dms/windowrules.kdl"
 include "dms/wpblur.kdl"
 
 // ============================================================================
-// 用户覆盖（覆盖 DMS 默认值）
+// 用户覆盖快捷键 (覆盖 DMS 默认值)
 // ============================================================================
 
-// 终端：kitty 替代 alacritty
+// 终端: kitty (覆盖 DMS 的 alacritty)
 Mod+Return { spawn "kitty"; }
 
-// 启动器：fuzzel 替代 DMS spotlight
-Mod+D { spawn "fuzzel"; }
+// 启动器: 覆盖 DMS spotlight 为 fuzzel (可选, 注释掉则使用 DMS spotlight)
+// Mod+D { spawn "fuzzel"; }
 
 // 截图
 Print { spawn "sh" "-c" "grim ~/Pictures/Screenshots/$(date +%Y%m%d_%H%M%S).png"; }
 Mod+Print { spawn "sh" "-c" "slurp | grim -g - ~/Pictures/Screenshots/$(date +%Y%m%d_%H%M%S).png"; }
 
-// 锁屏：swaylock (Catppuccin 主题)
-Mod+Escape { spawn "swaylock" "-f"; }
+// ============================================================================
+// 自启动 (DMS 由 systemd 管理，无需手动 spawn)
+// ============================================================================
 
-// DMS 提供 polkit 认证代理，无需额外配置
-
-// swww 壁纸守护进程（用户偏好 — DMS wpblur 层是独立的）
-spawn-at-startup {
-    command "swww-daemon"
-}
+// polkit 认证代理 (DMS 内置 polkit 支持，此行可选)

@@ -1,63 +1,79 @@
 {
-  description = "NixOS configuration for panxox-vm with niri + DMS";
+  description = "NixOS + niri + DMS configuration for panxox-vm";
 
   inputs = {
+    # Nixpkgs
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
+    # Niri (Wayland compositor) — provides xwayland-satellite
     niri = {
       url = "github:sodiboo/niri-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # DankMaterialShell — desktop shell built for niri
     dms = {
       url = "github:AvengeMedia/DankMaterialShell";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    dgop = {
-      url = "github:AvengeMedia/dgop";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    nix-packages = {
-      url = "github:Mooling0602/nix-packages";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
+    # Home manager
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  outputs = inputs@{ nixpkgs, home-manager, ... }:
+  outputs =
+    { self
+    , nixpkgs
+    , home-manager
+    , niri
+    , dms
+    , ...
+    } @ inputs:
     let
-      username = "panxox";   # ← 改这里即可替换用户名
-      hostname = "panxox-vm";  # ← 改这里即可替换主机名
+      system = "x86_64-linux";
+      username = "panxox";
+      hostname = "panxox-vm";
     in
     {
+      # Custom packages — accessible via 'nix build .#<name>'
+      packages.${system} = import ./pkgs nixpkgs.legacyPackages.${system};
+
+      # Formatter — 'nix fmt'
+      formatter.${system} = nixpkgs.legacyPackages.${system}.nixpkgs-fmt;
+
+      # Custom overlays
+      overlays = import ./overlays { inherit inputs; };
+
+      # Reusable NixOS modules (for sharing/upstreaming)
+      nixosModules = import ./modules/nixos;
+
+      # Reusable home-manager modules (for sharing/upstreaming)
+      homeManagerModules = import ./modules/home-manager;
+
+      # =========================================================================
+      # NixOS configuration — 'nixos-rebuild switch --flake .#panxox-vm'
+      # =========================================================================
       nixosConfigurations.${hostname} = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        specialArgs = { inherit inputs; };
+        inherit system;
+        specialArgs = { inherit inputs username hostname; };
         modules = [
-          ./hosts/${hostname}
+          ./nixos/configuration.nix
           home-manager.nixosModules.home-manager
           {
-            my = { inherit username hostname; };
             nixpkgs.overlays = [
               (final: prev: {
                 xwayland-satellite = inputs.niri.packages.${final.system}.xwayland-satellite-unstable;
               })
-              #(final: prev: {
-               # reasonix = inputs.nix-packages.packages.${final.system}.reasonix;
-              #})
             ];
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.backupFileExtension = "backup";
-            home-manager.users.${username} = { config, pkgs, ... }: {
+            home-manager.users.${username} = { ... }: {
               imports = [
-                ./modules/home
+                (import ./home-manager/home.nix)
                 inputs.dms.homeModules.dank-material-shell
               ];
             };
@@ -66,15 +82,14 @@
         ];
       };
 
-      # 代码格式化
-      formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixpkgs-fmt;
-
-      # 开发环境 (nix develop 进入)
-      devShells.x86_64-linux.default = nixpkgs.legacyPackages.x86_64-linux.mkShell {
-        packages = with nixpkgs.legacyPackages.x86_64-linux; [
-          nil          # Nix LSP 语言服务器
-          nixpkgs-fmt  # Nix 代码格式化工具
-          statix       # Nix 静态分析 / lint 工具
+      # =========================================================================
+      # Dev shell — 'nix develop' for Nix tooling
+      # =========================================================================
+      devShells.${system}.default = nixpkgs.legacyPackages.${system}.mkShell {
+        packages = with nixpkgs.legacyPackages.${system}; [
+          nil          # Nix LSP
+          nixpkgs-fmt  # Nix formatter
+          statix       # Nix linter
         ];
       };
     };
