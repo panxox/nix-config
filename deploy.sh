@@ -28,13 +28,13 @@ echo "==> 生成 hardware-configuration.nix"
 sudo nixos-generate-config --root / --dir nixos
 mv -f nixos/hardware-configuration.nix nixos/hardware-configuration.nix 2>/dev/null || true
 
-# 2. 更新 flake.nix 中的 username / hostname
+# 2. 更新 flake.nix 中的用户名 / 主机名
 echo "==> 更新 flake.nix"
 sed -i "s/username = \"[^\"]*\"/username = \"$USERNAME\"/" flake.nix
 sed -i "s/hostname = \"[^\"]*\"/hostname = \"$HOSTNAME\"/" flake.nix
 
 # 3. 更新 Git 配置
-echo "==> 更新 Git 配置"
+echo "==> 更新 home-manager/home.nix 中的 Git 信息"
 sed -i "s/name = \"[^\"]*\"/name = \"$GIT_NAME\"/" home-manager/home.nix
 sed -i "s/email = \"[^\"]*\"/email = \"$GIT_EMAIL\"/" home-manager/home.nix
 
@@ -44,6 +44,7 @@ echo ""
 echo "后续步骤:"
 echo "  1. 检查 git diff 确认变更"
 echo "  2. 生成密码哈希: mkpasswd -m yescrypt"
-echo "  3. 将哈希填入 nixos/configuration.nix 的 hashedPassword"
-echo "  4. 重建: sudo nixos-rebuild switch --flake ~/nix-config#$HOSTNAME"
+echo "  3. 将哈希填入 nixos/configuration.nix 的 hashedPassword 字段"
+echo "  4. 重建系统: sudo nixos-rebuild switch --flake ~/nix-config#$HOSTNAME"
+echo "  5. 首次登录后初始化 DMS: dms setup"
 echo ""
