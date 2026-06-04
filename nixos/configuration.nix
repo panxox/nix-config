@@ -36,6 +36,20 @@
   # ===========================================================================
   nixpkgs.config.allowUnfree = true;             # 允许非自由软件 (Chrome, VS Code 等)
 
+  # ---- 覆写 niri-session: 显式 import-environment, 消除 systemd 弃用警告 ----
+  # 上游 issue: https://github.com/YaLTeR/niri/issues/254
+  nixpkgs.overlays = [
+    (final: prev: {
+      niri = prev.niri.overrideAttrs (old: {
+        postPatch = (old.postPatch or "") + ''
+          substituteInPlace resources/niri-session \
+            --replace-fail 'systemctl --user import-environment' \
+            'systemctl --user import-environment DISPLAY WAYLAND_DISPLAY XDG_SESSION_TYPE XDG_CURRENT_DESKTOP NIRI_SOCKET DBUS_SESSION_BUS_ADDRESS PATH'
+        '';
+      });
+    })
+  ];
+
   # ===========================================================================
   # Nix 自身设置
   # ===========================================================================
