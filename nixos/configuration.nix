@@ -1,7 +1,7 @@
 # =============================================================================
-# NixOS 系统配置 — 最小化版本
+# NixOS 系统配置 — niri + DMS 桌面版
 # =============================================================================
-# 此文件只配置系统级的基础设置。
+# 此文件配置系统级基础设置 + niri 合成器 + DankMaterialShell 桌面环境。
 # 用户软件包和 dotfiles 请到 ../home-manager/home.nix 修改。
 #
 # 可用选项查询: https://search.nixos.org/options
@@ -29,7 +29,7 @@
   boot.loader.efi.canTouchEfiVariables = true;   # 允许修改 EFI 启动项
 
   # ---- 内核模块 (VMware 虚拟机音频, 物理机请删除) ----
-  boot.kernelModules = [ "snd_hda_intel" "snd_intel8x0" ];
+  boot.kernelModules = [ "snd_hda_intel" "snd_intel8x0" "i2c-dev" ];
 
   # ===========================================================================
   # Nixpkgs
@@ -126,20 +126,89 @@
   programs.dconf.enable = true;                # GTK 配置后端
 
   # ===========================================================================
-  # 显示管理器 — greetd (极简 TTY 自动登录)
+  # 显示管理器 — greetd 自动登录到 niri
   # ===========================================================================
-  # 开机后自动登录到 TTY, 你可以手动启动桌面环境。
-  # 如果不需要自动登录, 把下面整块注释掉即可回到传统的 TTY 登录。
   services.greetd = {
     enable = true;
     settings = {
       default_session = {
         user = username;
-        # 只启动 bash 登录 shell, 不启动任何桌面环境
-        command = "${pkgs.bash}/bin/bash -l";
+        # 直接启动 niri 会话 (niri-session 处理 systemd 集成)
+        command = "${pkgs.niri}/bin/niri-session";
       };
     };
   };
+
+  # 确保 greetd 在 niri 退出后重新登录
+  systemd.services.greetd.serviceConfig = {
+    Type = "idle";
+    StandardInput = "tty";
+    StandardOutput = "tty";
+    StandardError = "journal";
+    TTYReset = true;
+    TTYVTDisallocate = true;
+  };
+
+  # ===========================================================================
+  # niri — Wayland 滚动平铺合成器
+  # ===========================================================================
+  programs.niri = {
+    enable = true;
+    # 使用 nixpkgs unstable 中的最新 niri 包
+    # package = pkgs.niri;
+  };
+
+  # ===========================================================================
+  # DankMaterialShell — 完整的桌面 Shell
+  # ===========================================================================
+  programs.dms-shell = {
+    enable = true;
+
+    # --- systemd 自启动 (绑定到 niri.service) ---
+    systemd = {
+      enable = true;
+      target = "niri.service";
+      restartIfChanged = true;
+    };
+
+    # --- 功能开关 ---
+    enableSystemMonitoring = true;      # 系统监控 (CPU/GPU/内存/磁盘/网络)
+    enableVPN = true;                   # VPN 管理
+    enableDynamicTheming = true;        # 动态取色 (matugen)
+    enableAudioWavelength = true;       # 音频可视化 (cava)
+    enableCalendarEvents = true;        # 日历集成 (khal)
+    enableClipboardPaste = true;        # 剪贴板历史粘贴 (wtype)
+
+    # --- DMS 插件 ---
+    plugins = {
+      # 从插件注册表启用插件 (ID 可在插件商店找到)
+      # 示例: dockerManager.enable = true;
+      # 见 https://github.com/AvengeMedia/dms-plugin-registry
+    };
+  };
+
+  # ===========================================================================
+  # XDG 桌面 Portal (屏幕共享 / 文件选择器)
+  # ===========================================================================
+  # niri 模块已配置了基本 portal, 这里补充 GTK portal
+  xdg.portal = {
+    enable = true;
+    config.common.default = [ "gnome" "gtk" ];
+    extraPortals = with pkgs; [
+      xdg-desktop-portal-gtk
+    ];
+  };
+
+  # gnome-keyring 由 programs.niri 启用, 这里额外配置 seahorse
+  services.gnome.gnome-keyring.enable = true;
+  programs.seahorse.enable = true;            # 密钥管理 GUI
+
+  # ---- AccountsService (用户画像) ----
+  services.accounts-daemon.enable = true;
+
+  # ---- 电源管理 ----
+  services.power-profiles-daemon.enable = true;
+  hardware.i2c.enable = true;                 # I2C 背光控制
 
   # ===========================================================================
   # 用户
@@ -148,7 +217,7 @@
     isNormalUser = true;
     description = "Developer";
     shell = pkgs.zsh;                            # 默认 Shell
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = [ "networkmanager" "wheel" "video" ];
     # 密码哈希: 用 mkpasswd -m yescrypt 生成后填到这里
     # hashedPassword = "...";
   };
@@ -180,6 +249,16 @@
     curl
     wget
     fastfetch
+
+    # DMS 生态增强工具 (DMS 模块已自动安装 dgop/matugen/cava/khal/wtype)
+    dsearch                             # 文件搜索 (DMS 未自动包含)
+    cliphist                            # 剪贴板历史
+    wl-clipboard                        # Wayland 剪贴板工具
+    swappy                              # 截图编辑器 (DMS 推荐)
+    satty                               # 备选截图编辑器
+
+    # niri 相关工具
+    xwayland                            # X11 兼容层
   ];
 
   # ===========================================================================

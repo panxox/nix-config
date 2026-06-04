@@ -1,7 +1,7 @@
 # =============================================================================
-# NixOS 最小化配置 — panxox-vm
+# NixOS 配置 — panxox-vm (niri + DMS 桌面)
 # =============================================================================
-# 依赖只有 nixpkgs 和 home-manager 两个, 干净简单不出 bug。
+# 基于 niri 合成器 + DankMaterialShell 桌面环境的现代 Wayland 配置。
 #
 # 使用方法:
 #   首次构建: nix flake update && sudo nixos-rebuild switch --flake .#panxox-vm
@@ -9,10 +9,10 @@
 #   代码格式化: nix fmt
 # =============================================================================
 {
-  description = "NixOS minimal config — panxox-vm";
+  description = "NixOS niri + DMS config — panxox-vm";
 
   # ===========================================================================
-  # Inputs — 只需两个外部依赖
+  # Inputs
   # ===========================================================================
   inputs = {
     # ---- Nixpkgs (unstable 分支, 软件包最新) ----
@@ -21,6 +21,12 @@
     # ---- Home Manager (用户态包管理) ----
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # ---- DMS 插件注册表 (声明式插件安装) ----
+    dms-plugin-registry = {
+      url = "github:AvengeMedia/dms-plugin-registry";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -32,6 +38,7 @@
     { self
     , nixpkgs
     , home-manager
+    , dms-plugin-registry
     , ...
     } @ inputs:
     let
@@ -46,6 +53,7 @@
         specialArgs = { inherit inputs username hostname; };
         modules = [
           ./nixos/configuration.nix
+          dms-plugin-registry.modules.default   # DMS 插件注册表
           home-manager.nixosModules.home-manager
           {
             home-manager.useGlobalPkgs = true;

@@ -1,5 +1,5 @@
 # =============================================================================
-# Home Manager 用户配置 — 最小化版本
+# Home Manager 用户配置 — niri + DMS 桌面版
 # =============================================================================
 # 系统级设置请到 ../nixos/configuration.nix 修改。
 #
@@ -29,8 +29,8 @@
   # ===========================================================================
   # 用户软件包
   # ===========================================================================
-  # 用 home.packages 装你需要的软件, 每个包一行, 保持干净。
-  # 搜索包的名称: https://search.nixos.org/packages
+  # 注意: DMS 已经自带了启动器、剪贴板、通知、壁纸、锁屏等功能,
+  # 所以不再需要 fuzzel 等独立工具。
   home.packages = with pkgs; [
     # ---- 终端 ----
     kitty                               # GPU 加速终端模拟器
@@ -43,13 +43,8 @@
     vscode                              # VS Code
     neovim                              # Neovim 终端编辑器
 
-    # ---- 系统工具 ----
-    btop                                # 资源监控
+    # ---- 系统工具 (DMS 自带的 dgop 已替代 btop) ----
     fastfetch                           # 系统信息
-
-    # ---- Wayland 工具 ----
-    wl-clipboard                        # 剪贴板 (wl-copy / wl-paste)
-    fuzzel                              # 应用启动器
 
     # ---- 开发语言 ----
     go                                  # Golang
@@ -82,6 +77,9 @@
       ll = "ls -l";
       # 一键重建系统 (要先 git commit)
       nsw = "sudo nixos-rebuild switch --flake $HOME/nix-config/#${hostname}";
+      # DMS 快捷命令
+      dms-restart = "systemctl --user restart dms";
+      dms-logs = "journalctl --user -u dms -f";
     };
   };
 
@@ -173,31 +171,29 @@
   qt = {
     enable = true;
     platformTheme.name = "qt6ct";
+    style.name = "kvantum";
   };
 
-  # ---- Wayland 相关环境变量 ----
+  # ---- Wayland 相关环境变量 (DMS 推荐配置) ----
   systemd.user.sessionVariables = {
-    QT_QPA_PLATFORMTHEME = "qt6ct";
-    QT_QPA_PLATFORMTHEME_QT6 = "qt6ct";
+    # Qt Wayland
+    QT_QPA_PLATFORM = "wayland";
+    QT_QPA_PLATFORMTHEME = "gtk3";
+    QT_QPA_PLATFORMTHEME_QT6 = "gtk3";
     QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
-    NIXOS_OZONE_WL = "1";               # Electron 应用走 Wayland
-  };
 
-  # ---- XDG Portal (屏幕共享 / 文件选择器) ----
-  xdg.portal = {
-    enable = true;
-    config.common.default = [ "gtk" ];
-    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
-  };
+    # Electron Wayland
+    NIXOS_OZONE_WL = "1";
+    ELECTRON_OZONE_PLATFORM_HINT = "auto";
 
-  # ---- Fontconfig (字体回退顺序) ----
-  fonts.fontconfig = {
-    enable = true;
-    defaultFonts = {
-      sansSerif = [ "Sarasa UI SC" ];
-      serif     = [ "Noto Serif CJK SC" ];
-      monospace  = [ "Maple Mono NF CN" ];
-    };
+    # GDK (GTK) 后端
+    GDK_BACKEND = "wayland";
+
+    # SDL
+    SDL_VIDEO_DRIVER = "wayland";
+
+    # DMS 截图编辑器
+    DMS_SCREENSHOT_EDITOR = "swappy";
   };
 
   # ---- GTK ----
@@ -212,5 +208,15 @@
   # ---- dconf: 偏好暗色 ----
   dconf.settings = {
     "org/gnome/desktop/interface".color-scheme = "prefer-dark";
+  };
+
+  # ---- Fontconfig (字体回退顺序) ----
+  fonts.fontconfig = {
+    enable = true;
+    defaultFonts = {
+      sansSerif = [ "Sarasa UI SC" ];
+      serif     = [ "Noto Serif CJK SC" ];
+      monospace  = [ "Maple Mono NF CN" ];
+    };
   };
 }

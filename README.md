@@ -1,31 +1,33 @@
-# NixOS 最小化配置
+# NixOS niri + DMS 配置
 
-干净简单的 NixOS 配置，没有复杂的桌面环境，开机直接进终端。
+基于 **niri** 合成器 + **DankMaterialShell (DMS)** 桌面环境的现代 Wayland 配置。
+开机自动登录到 niri 桌面，DMS 提供完整的桌面体验。
 
 ## 预装软件
 
 | 类别 | 软件 |
 |------|------|
-| 终端 | kitty, zellij |
-| 浏览器 | firefox |
-| 编辑器 | vscode, neovim |
-| 启动器 | fuzzel |
-| 系统工具 | btop, fastfetch, git, curl, wget |
-| 剪贴板 | wl-clipboard |
-| 开发语言 | go, rust (rustup + rust-analyzer) |
-| 字体 | Maple Mono NF CN, Sarasa Gothic, Noto CJK, Nerd Fonts |
-| 显示管理 | greetd (TTY 自动登录) |
+| **合成器** | niri (滚动平铺 Wayland 合成器) |
+| **桌面 Shell** | DankMaterialShell (面板/启动器/通知/锁屏/壁纸/剪贴板/... ) |
+| **终端** | kitty, zellij |
+| **浏览器** | firefox |
+| **编辑器** | vscode, neovim |
+| **系统监控** | dgop (DMS 集成) |
+| **文件搜索** | dsearch (DMS 集成) |
+| **开发语言** | go, rust (rustup + rust-analyzer) |
+| **字体** | Maple Mono NF CN, Sarasa Gothic, Noto CJK, Nerd Fonts |
+| **显示管理** | greetd → niri 自动登录 |
 
 ## 项目结构
 
 ```
 ~/nix-config/
-├── flake.nix                       # 入口: nixpkgs + home-manager
+├── flake.nix                       # 入口: nixpkgs + home-manager + dms-plugin-registry
 ├── nixos/
-│   ├── configuration.nix           # 系统配置
+│   ├── configuration.nix           # 系统配置 (niri + DMS + greetd)
 │   └── hardware-configuration.nix  # 硬件配置 (自动生成)
 ├── home-manager/
-│   └── home.nix                    # 用户配置 (软件包/shell/git/主题)
+│   └── home.nix                    # 用户配置 (软件包/shell/git/主题/环境变量)
 └── README.md
 ```
 
@@ -43,6 +45,16 @@ nix flake update
 sudo nixos-rebuild switch --flake ~/nix-config#panxox-vm
 ```
 
+### 首次启动后 — 初始化 DMS
+
+```bash
+# 生成 DMS 默认配置（niri 键位、颜色、布局等）
+dms setup
+
+# 查看 DMS 状态
+systemctl --user status dms
+```
+
 ### 日常重建
 
 ```bash
@@ -51,6 +63,16 @@ nsw
 
 # 或完整命令
 sudo nixos-rebuild switch --flake ~/nix-config#panxox-vm
+```
+
+### DMS 常用命令
+
+```bash
+dms-restart                    # 重启 DMS
+dms-logs                       # 查看 DMS 日志
+dms ipc call spotlight toggle  # 打开启动器 (Mod+Space)
+dms ipc call settings toggle   # 打开设置
+dms doctor                     # 系统诊断
 ```
 
 ## 工作流
@@ -101,14 +123,30 @@ mkpasswd -m yescrypt
 
 # 7. 重建
 sudo nixos-rebuild switch --flake ~/nix-config#<hostname>
+
+# 8. 初始化 DMS 配置
+dms setup
 ```
 
-## greetd 自动登录
+## 桌面概览
 
-默认配置了 greetd 开机自动登录到 TTY bash shell。
+| 快捷键 | 功能 |
+|--------|------|
+| `Mod+Space` | 应用启动器 (Spotlight) |
+| `Mod+V` | 剪贴板历史 |
+| `Mod+M` | 任务管理器 |
+| `Mod+,` | 设置 |
+| `Mod+N` | 通知中心 |
+| `Mod+Y` | 浏览壁纸 |
+| `Mod+Alt+L` | 锁定屏幕 |
+| `Mod+Shift+Return` | 全屏截图 |
+| 音量键 | 音量控制 |
+| 亮度键 | 亮度控制 |
 
-- 不需要自动登录 → 把 `nixos/configuration.nix` 里的 `services.greetd` 整块删掉
-- 想启动桌面环境 → 登录后手动运行你的合成器（niri / sway / hyprland 等）
+## DMS 插件
+
+DMS 支持社区插件，通过 `configuration.nix` 的 `programs.dms-shell.plugins` 声明式安装。
+插件列表见: https://github.com/AvengeMedia/dms-plugin-registry
 
 ## 参考
 
@@ -118,4 +156,6 @@ sudo nixos-rebuild switch --flake ~/nix-config#<hostname>
 | NixOS 选项搜索 | https://search.nixos.org/options |
 | NixOS & Flakes Book (中文) | https://nixos-and-flakes.thiscute.world/zh/ |
 | Home Manager 手册 | https://nix-community.github.io/home-manager/ |
+| DMS 文档 | https://danklinux.com/docs/ |
+| niri Wiki | https://github.com/YaLTeR/niri/wiki |
 | NixOS Wiki | https://nixos.wiki/ |
