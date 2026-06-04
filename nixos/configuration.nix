@@ -105,7 +105,7 @@
     sarasa-gothic                       # 更纱黑体
     noto-fonts-cjk-serif                # Noto 宋体
     noto-fonts-cjk-sans                 # Noto 黑体
-    noto-fonts-emoji                    # Emoji
+    noto-fonts-color-emoji              # Emoji
     nerd-fonts.symbols-only             # Nerd Font 图标
   ];
   fonts.fontconfig.enable = true;
