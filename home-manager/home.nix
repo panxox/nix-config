@@ -49,8 +49,7 @@
 
     # ---- 开发语言 ----
     go                                  # Golang
-    rustup                              # Rust 工具链管理器
-    rust-analyzer                       # Rust LSP 服务器
+    rustup                              # Rust 工具链管理器 (含 rust-analyzer)
 
     # ---- 字体 (用户级, fontconfig 可见) ----
     maple-mono.NF-CN                    # Maple Mono Nerd Font
