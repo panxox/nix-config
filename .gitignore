@@ -1,8 +1,8 @@
-# Nix build artifacts
+# Nix 构建产物
 result
 result-*
 
-# Editor temp files
+# 编辑器
 *.swp
 *.swo
 *~
