@@ -170,7 +170,7 @@
   # ---- Qt ----
   qt = {
     enable = true;
-    platformTheme.name = "qt6ct";
+    platformTheme.name = "gtk3";
     style.name = "kvantum";
   };
 
@@ -178,7 +178,6 @@
   systemd.user.sessionVariables = {
     # Qt Wayland
     QT_QPA_PLATFORM = "wayland";
-    QT_QPA_PLATFORMTHEME = "gtk3";
     QT_QPA_PLATFORMTHEME_QT6 = "gtk3";
     QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
 
