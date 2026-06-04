@@ -22,6 +22,7 @@
     username = username;
     homeDirectory = "/home/${username}";
     stateVersion = "26.05";              # 不要改
+    enableNixpkgsReleaseCheck = false;   # nixpkgs unstable 故意比 HM 新, 忽略版本检查
   };
 
   programs.home-manager.enable = true;
@@ -154,6 +155,7 @@
   # ===========================================================================
   programs.ssh = {
     enable = true;
+    enableDefaultConfig = false;       # 新版 HM 不再自动注入默认值, 关掉弃用警告
     # 按需开启:
     # matchBlocks = {
     #   "github.com" = {
