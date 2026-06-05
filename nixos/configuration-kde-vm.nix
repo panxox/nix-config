@@ -80,8 +80,17 @@
   # ===========================================================================
   # KDE Plasma 6 桌面环境
   # ===========================================================================
-  services.displayManager.sddm.enable = true;        # SDDM 登录管理器
-  services.desktopManager.plasma6.enable = true;     # KDE Plasma 6 桌面
+  # ---- X11 基础 (VMware 虚拟显卡对 X11 兼容性更好) ----
+  services.xserver.enable = true;
+
+  # ---- SDDM 显示管理器 ----
+  services.displayManager.sddm.enable = true;
+
+  # ---- KDE Plasma 6 桌面 ----
+  services.desktopManager.plasma6.enable = true;
+
+  # ---- XWayland (Wayland 中运行 X11 应用) ----
+  programs.xwayland.enable = true;
 
   # ---- 音频 (PipeWire) ----
   services.pipewire = {
