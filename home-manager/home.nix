@@ -2,9 +2,11 @@
 # Home Manager 用户配置 — niri + DMS 桌面版
 # =============================================================================
 # 系统级设置请到 ../nixos/configuration.nix 修改。
+# DMS 桌面环境在此配置。
 #
 # Home Manager 选项: https://nix-community.github.io/home-manager/options.html
 # Nix 包搜索:      https://search.nixos.org/packages
+# DMS 选项:         https://github.com/AvengeMedia/DankMaterialShell/blob/stable/distro/nix/options.nix
 # =============================================================================
 {
   inputs,
@@ -22,10 +24,45 @@
     username = username;
     homeDirectory = "/home/${username}";
     stateVersion = "26.05";              # 不要改
-    enableNixpkgsReleaseCheck = false;   # nixpkgs unstable 故意比 HM 新, 忽略版本检查
+    enableNixpkgsReleaseCheck = false;   # nixpkgs 与 HM release 可能有微小版本偏移, 忽略检查
   };
 
   programs.home-manager.enable = true;
+
+  # 禁用 niri-flake 自带的 polkit agent，使用 DMS 内置的 polkit agent 避免冲突
+  systemd.user.services.niri-flake-polkit.enable = false;
+
+  # ===========================================================================
+  # DankMaterialShell — 桌面环境
+  # ===========================================================================
+  # DMS home-manager 模块和 niri 集成模块已在 flake.nix 中导入。
+  # 详见: https://danklinux.com/docs/dankmaterialshell/nixos-flake
+  programs.dank-material-shell = {
+    enable = true;
+
+    # --- DMS 自启方式: 由 niri 管理 (而非 systemd) ---
+    # 注意: 不要同时启用 systemd.enable 和 niri.enableSpawn，会产生两个 DMS 实例。
+    # systemd.enable = false;  (默认值)
+    niri = {
+      enableSpawn = true;                # niri 启动时自动启动 DMS
+      # niri.includes 默认启用，处理配置包含 (niri config.kdl 包含 DMS 生成的文件)
+    };
+
+    # --- 功能开关 ---
+    enableSystemMonitoring = true;      # 系统监控 (CPU/GPU/内存/磁盘/网络)
+    enableVPN = true;                   # VPN 管理
+    enableDynamicTheming = true;        # 动态取色 (matugen)
+    enableAudioWavelength = true;       # 音频可视化 (cava)
+    enableCalendarEvents = true;        # 日历集成 (khal)
+    enableClipboardPaste = true;        # 剪贴板历史粘贴 (wtype)
+
+    # --- DMS 插件 (来自插件注册表) ---
+    plugins = {
+      # 从插件注册表启用插件 (ID 可在插件商店找到)
+      # 示例: dockerManager.enable = true;
+      # 见 https://github.com/AvengeMedia/dms-plugin-registry
+    };
+  };
 
   # ===========================================================================
   # 用户软件包
@@ -44,7 +81,7 @@
     vscode                              # VS Code
     neovim                              # Neovim 终端编辑器
 
-    # ---- 系统工具 (DMS 自带的 dgop 已替代 btop) ----
+    # ---- 系统工具 ----
     fastfetch                           # 系统信息
 
     # ---- 开发语言 ----
