@@ -29,9 +29,6 @@
 
   programs.home-manager.enable = true;
 
-  # 禁用 niri-flake 自带的 polkit agent，使用 DMS 内置的 polkit agent 避免冲突
-  systemd.user.services.niri-flake-polkit.enable = false;
-
   # ===========================================================================
   # DankMaterialShell — 桌面环境
   # ===========================================================================

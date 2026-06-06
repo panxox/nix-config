@@ -186,6 +186,9 @@
   # DMS 的 niri 集成 (快捷键、配置包含) 在 home-manager/home.nix 中配置。
   programs.niri.enable = true;
 
+  # 禁用 niri-flake 自带的 KDE polkit agent，使用 DMS 内置的 polkit agent 避免冲突
+  systemd.user.services.niri-flake-polkit.enable = false;
+
   # ===========================================================================
   # XDG 桌面 Portal (屏幕共享 / 文件选择器)
   # ===========================================================================
