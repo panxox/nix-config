@@ -42,7 +42,28 @@
     # systemd.enable = false;  (默认值)
     niri = {
       enableSpawn = true;                # niri 启动时自动启动 DMS
-      # niri.includes 默认启用，处理配置包含 (niri config.kdl 包含 DMS 生成的文件)
+      enableKeybinds = false;            # 使用 includes 管理快捷键，避免与 DMS 生成 binds 冲突
+
+      # niri.includes 处理配置包含 (niri config.kdl 包含 DMS 生成的文件)
+      # 开启 override 后 niri-flake 生成的 config.kdl 会重命名为 hm.kdl，
+      # DMS 写入新的 config.kdl 同时 include hm.kdl 和 dms/*.kdl。
+      # ⚠️ 首次构建后必须运行 `dms setup` 生成 ~/.config/niri/dms/*.kdl 文件，
+      #    否则 niri 会因找不到 include 的文件而启动失败。
+      includes = {
+        enable = true;
+        override = true;
+        originalFileName = "hm";
+        filesToInclude = [
+          "alttab"        # 窗口切换高亮
+          "binds"         # 快捷键
+          "colors"        # 配色方案
+          "cursor"        # 光标主题
+          "layout"        # 间距/圆角/边框
+          "outputs"       # 显示输出
+          "windowrules"   # 窗口规则
+          "wpblur"        # 壁纸模糊
+        ];
+      };
     };
 
     # --- 功能开关 ---
@@ -53,11 +74,42 @@
     enableCalendarEvents = true;        # 日历集成 (khal)
     enableClipboardPaste = true;        # 剪贴板历史粘贴 (wtype)
 
+    # --- 显式使用 flake 版本的 dgop (确保与 DMS 版本匹配) ---
+    dgop.package = inputs.dgop.packages.${pkgs.system}.default;
+
+    # --- DMS 持久化设置 ---
+    session = {
+      isLightMode = false;              # 默认暗色模式
+    };
+    settings = {
+      theme = "dark";                   # 主题: dark
+      dynamicTheming = true;            # 动态取色
+    };
+
+    # --- 剪贴板历史设置 ---
+    clipboardSettings = {
+      maxHistory = 50;                  # 最多保存 50 条
+      maxEntrySize = 5242880;           # 单条最大 5MB
+      autoClearDays = 1;               # 每天自动清理
+      clearAtStartup = false;           # 启动时不清理
+      disablePersist = true;            # 重启后不保留 (隐私)
+    };
+
     # --- DMS 插件 (来自插件注册表) ---
     plugins = {
       # 从插件注册表启用插件 (ID 可在插件商店找到)
       # 示例: dockerManager.enable = true;
       # 见 https://github.com/AvengeMedia/dms-plugin-registry
+    };
+
+    # --- 应用 Wayland 覆盖 (确保 Electron/Chromium 应用原生 Wayland 运行) ---
+    appOverrides = {
+      firefox = {
+        extraFlags = "--ozone-platform=wayland";
+      };
+      vscode = {
+        extraFlags = "--ozone-platform=wayland --enable-wayland-ime";
+      };
     };
   };
 
@@ -96,6 +148,9 @@
 
     # ---- 光标主题 ----
     catppuccin-cursors.mochaDark        # Catppuccin Mocha 暗色光标
+
+    # ---- GTK 主题 (DMS 动态主题应用到 GTK 应用) ----
+    adw-gtk3                            # libadwaita 主题 (跟随 DMS 动态取色)
   ];
 
   # ===========================================================================
@@ -114,6 +169,7 @@
       # DMS 快捷命令
       dms-restart = "systemctl --user restart dms";
       dms-logs = "journalctl --user -u dms -f";
+      dms-setup = "dms setup";           # 首次构建后运行以生成 niri 配置文件
     };
   };
 
@@ -213,7 +269,8 @@
   systemd.user.sessionVariables = {
     # Qt Wayland
     QT_QPA_PLATFORM = "wayland";
-    QT_QPA_PLATFORMTHEME_QT6 = "gtk3";
+    QT_QPA_PLATFORMTHEME = "gtk3";     # Qt5 平台主题
+    QT_QPA_PLATFORMTHEME_QT6 = "gtk3"; # Qt6 平台主题
     QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
 
     # Electron Wayland

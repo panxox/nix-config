@@ -184,6 +184,10 @@
   # niri-flake NixOS 模块已在 flake.nix 中导入 (niri.nixosModules.niri)
   # 它会自动处理 programs.niri 和相关配置。
   # DMS 的 niri 集成 (快捷键、配置包含) 在 home-manager/home.nix 中配置。
+  #
+  # ⚠️ 首次构建后务必运行 `dms setup` 生成 ~/.config/niri/dms/*.kdl 文件，
+  #    否则 niri 会因找不到 DMS include 的文件而启动失败。
+  #    详见: https://danklinux.com/docs/dankmaterialshell/nixos-flake
   programs.niri.enable = true;
 
   # 禁用 niri-flake 自带的 KDE polkit agent，使用 DMS 内置的 polkit agent 避免冲突

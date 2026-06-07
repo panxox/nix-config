@@ -58,6 +58,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # ---- dgop (DMS 系统监控依赖) ----
+    dgop = {
+      url = "github:AvengeMedia/dgop";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # ---- DMS 插件注册表 (按需启用插件) ----
     dms-plugin-registry = {
       url = "github:AvengeMedia/dms-plugin-registry";
@@ -73,6 +79,7 @@
     , nixpkgs
     , home-manager
     , dms
+    , dgop
     , niri
     , dms-plugin-registry
     , ...
