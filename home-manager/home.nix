@@ -1,12 +1,5 @@
 # =============================================================================
-# Home Manager 用户配置 — niri + DMS 桌面版
-# =============================================================================
-# 系统级设置请到 ../nixos/configuration.nix 修改。
-# DMS 桌面环境在此配置。
-#
-# Home Manager 选项: https://nix-community.github.io/home-manager/options.html
-# Nix 包搜索:      https://search.nixos.org/packages
-# DMS 选项:         https://github.com/AvengeMedia/DankMaterialShell/blob/stable/distro/nix/options.nix
+# Home Manager 用户配置 — niri + DMS 桌面 + 中文输入法
 # =============================================================================
 {
   inputs,
@@ -17,14 +10,11 @@
   hostname,
   ...
 }: {
-  # ===========================================================================
-  # 基本信息
-  # ===========================================================================
   home = {
     username = username;
     homeDirectory = "/home/${username}";
-    stateVersion = "26.05";              # 不要改
-    enableNixpkgsReleaseCheck = false;   # nixpkgs 与 HM release 可能有微小版本偏移, 忽略检查
+    stateVersion = "26.05";
+    enableNixpkgsReleaseCheck = false;
   };
 
   programs.home-manager.enable = true;
@@ -32,161 +22,140 @@
   # ===========================================================================
   # DankMaterialShell — 桌面环境
   # ===========================================================================
-  # DMS home-manager 模块和 niri 集成模块已在 flake.nix 中导入。
-  # 详见: https://danklinux.com/docs/dankmaterialshell/nixos-flake
   programs.dank-material-shell = {
     enable = true;
 
-    # --- DMS 自启方式: 由 niri 管理 (而非 systemd) ---
-    # 注意: 不要同时启用 systemd.enable 和 niri.enableSpawn，会产生两个 DMS 实例。
-    # systemd.enable = false;  (默认值)
     niri = {
-      enableSpawn = true;                # niri 启动时自动启动 DMS
-      enableKeybinds = false;            # 使用 includes 管理快捷键，避免与 DMS 生成 binds 冲突
-
-      # niri.includes 处理配置包含 (niri config.kdl 包含 DMS 生成的文件)
-      # 开启 override 后 niri-flake 生成的 config.kdl 会重命名为 hm.kdl，
-      # DMS 写入新的 config.kdl 同时 include hm.kdl 和 dms/*.kdl。
-      # ⚠️ 首次构建后必须运行 `dms setup` 生成 ~/.config/niri/dms/*.kdl 文件，
-      #    否则 niri 会因找不到 include 的文件而启动失败。
+      enableSpawn = true;
+      enableKeybinds = false;
       includes = {
         enable = true;
         override = true;
         originalFileName = "hm";
         filesToInclude = [
-          "alttab"        # 窗口切换高亮
-          "binds"         # 快捷键
-          "colors"        # 配色方案
-          "cursor"        # 光标主题
-          "layout"        # 间距/圆角/边框
-          "outputs"       # 显示输出
-          "windowrules"   # 窗口规则
-          "wpblur"        # 壁纸模糊
+          "alttab" "binds" "colors" "cursor"
+          "layout" "outputs" "windowrules" "wpblur"
         ];
       };
     };
 
-    # --- 功能开关 ---
-    enableSystemMonitoring = true;      # 系统监控 (CPU/GPU/内存/磁盘/网络)
-    enableVPN = true;                   # VPN 管理
-    enableDynamicTheming = true;        # 动态取色 (matugen)
-    enableAudioWavelength = true;       # 音频可视化 (cava)
-    enableCalendarEvents = true;        # 日历集成 (khal)
-    enableClipboardPaste = true;        # 剪贴板历史粘贴 (wtype)
+    enableSystemMonitoring = true;
+    enableVPN = true;
+    enableDynamicTheming = true;
+    enableAudioWavelength = true;
+    enableCalendarEvents = true;
+    enableClipboardPaste = true;
 
-    # --- 显式使用 flake 版本的 dgop (确保与 DMS 版本匹配) ---
     dgop.package = inputs.dgop.packages.${pkgs.system}.default;
 
-    # --- DMS 持久化设置 ---
-    session = {
-      isLightMode = false;              # 默认暗色模式
-    };
+    session = { isLightMode = false; };
     settings = {
-      theme = "dark";                   # 主题: dark
-      dynamicTheming = true;            # 动态取色
+      theme = "dark";
+      dynamicTheming = true;
     };
 
-    # --- 剪贴板历史设置 ---
     clipboardSettings = {
-      maxHistory = 50;                  # 最多保存 50 条
-      maxEntrySize = 5242880;           # 单条最大 5MB
-      autoClearDays = 1;               # 每天自动清理
-      clearAtStartup = false;           # 启动时不清理
-      disablePersist = true;            # 重启后不保留 (隐私)
+      maxHistory = 50;
+      maxEntrySize = 5242880;
+      autoClearDays = 1;
+      clearAtStartup = false;
+      disablePersist = true;
     };
 
-    # --- DMS 插件 (来自插件注册表) ---
-    plugins = {
-      # 从插件注册表启用插件 (ID 可在插件商店找到)
-      # 示例: dockerManager.enable = true;
-      # 见 https://github.com/AvengeMedia/dms-plugin-registry
-    };
+    plugins = {};
 
-    # --- 应用 Wayland 覆盖 (确保 Electron/Chromium 应用原生 Wayland 运行) ---
     appOverrides = {
-      firefox = {
-        extraFlags = "--ozone-platform=wayland";
-      };
-      vscode = {
-        extraFlags = "--ozone-platform=wayland --enable-wayland-ime";
-      };
+      firefox = { extraFlags = "--ozone-platform=wayland"; };
+      vscode = { extraFlags = "--ozone-platform=wayland --enable-wayland-ime"; };
     };
   };
 
   # ===========================================================================
   # 用户软件包
   # ===========================================================================
-  # 注意: DMS 已经自带了启动器、剪贴板、通知、壁纸、锁屏等功能,
-  # 所以不再需要 fuzzel 等独立工具。
   home.packages = with pkgs; [
-    # ---- 终端 ----
-    kitty                               # GPU 加速终端模拟器
-    zellij                              # 终端复用器 (tmux 替代)
+    # 终端
+    kitty
+    zellij
 
-    # ---- 浏览器 ----
-    firefox                             # Firefox 浏览器
+    # 浏览器
+    firefox
 
-    # ---- 编辑器 ----
-    vscode                              # VS Code
-    neovim                              # Neovim 终端编辑器
+    # 编辑器
+    vscode
+    neovim
 
-    # ---- 系统工具 ----
-    fastfetch                           # 系统信息
+    # 系统工具
+    fastfetch
 
-    # ---- 开发语言 ----
-    go                                  # Golang
-    rustup                              # Rust 工具链管理器 (含 rust-analyzer)
+    # 开发语言
+    go
+    rustup
 
-    # ---- 字体 (用户级, fontconfig 可见) ----
-    maple-mono.NF-CN                    # Maple Mono Nerd Font
-    sarasa-gothic                       # 更纱黑体
-    noto-fonts-cjk-serif                # Noto 宋体
-    nerd-fonts.symbols-only             # Nerd Font 图标
+    # 字体
+    maple-mono.NF-CN
+    sarasa-gothic
+    noto-fonts-cjk-serif
+    nerd-fonts.symbols-only
 
-    # ---- 图标主题 ----
-    papirus-icon-theme                  # Papirus 图标
+    # 图标主题
+    papirus-icon-theme
 
-    # ---- 光标主题 ----
-    catppuccin-cursors.mochaDark        # Catppuccin Mocha 暗色光标
+    # 光标主题
+    catppuccin-cursors.mochaDark
 
-    # ---- GTK 主题 (DMS 动态主题应用到 GTK 应用) ----
-    adw-gtk3                            # libadwaita 主题 (跟随 DMS 动态取色)
+    # GTK 主题
+    adw-gtk3
+
+    # 中文输入法
+    fcitx5
+    fcitx5-chinese-addons
+    fcitx5-rime
+    fcitx5-pinyin-zhwiki
+    fcitx5-gtk
+    fcitx5-qt
+    fcitx5-configtool
   ];
+
+  # ===========================================================================
+  # 中文输入法配置
+  # ===========================================================================
+  i18n.inputMethod = {
+    enabled = "fcitx5";
+    fcitx5.addons = with pkgs; [
+      fcitx5-chinese-addons
+      fcitx5-rime
+      fcitx5-pinyin-zhwiki
+      fcitx5-gtk
+      fcitx5-qt
+    ];
+  };
 
   # ===========================================================================
   # Shell — Zsh + Starship
   # ===========================================================================
   programs.zsh = {
     enable = true;
-    enableCompletion = true;             # 命令补全
-    autosuggestion.enable = true;        # 灰色历史提示
-    syntaxHighlighting.enable = true;    # 语法高亮
+    enableCompletion = true;
+    autosuggestion.enable = true;
+    syntaxHighlighting.enable = true;
 
     shellAliases = {
       ll = "ls -l";
-      # 一键重建系统 (要先 git commit)
       nsw = "sudo nixos-rebuild switch --flake $HOME/nix-config/#${hostname}";
-      # DMS 快捷命令
       dms-restart = "systemctl --user restart dms";
       dms-logs = "journalctl --user -u dms -f";
-      dms-setup = "dms setup";           # 首次构建后运行以生成 niri 配置文件
+      dms-setup = "dms setup";
     };
   };
 
-  # ---- Starship 提示符 ----
   programs.starship = {
     enable = true;
     settings = {
       add_newline = false;
       format = lib.concatStrings [
-        "$username"
-        "$hostname"
-        "$directory"
-        "$git_branch"
-        "$git_status"
-        "$nix_shell"
-        "$line_break"
-        "$character"
+        "$username" "$hostname" "$directory" "$git_branch"
+        "$git_status" "$nix_shell" "$line_break" "$character"
       ];
 
       character = {
@@ -194,15 +163,8 @@
         error_symbol   = "[>](bold #f38ba8)";
       };
 
-      directory = {
-        style = "#b4befe";
-        truncation_length = 5;
-      };
-
-      git_branch = {
-        style = "#fab387";
-        symbol = "";
-      };
+      directory = { style = "#b4befe"; truncation_length = 5; };
+      git_branch = { style = "#fab387"; symbol = ""; };
       git_status.style = "#eba0ac";
 
       username = {
@@ -232,8 +194,8 @@
     enable = true;
     settings = {
       user = {
-        name = "panxox";               # ← 改成你的名字
-        email = "2279827640@qq.com";   # ← 改成你的邮箱
+        name = "panxox";
+        email = "2279827640@qq.com";
       };
       init.defaultBranch = "main";
     };
@@ -244,50 +206,30 @@
   # ===========================================================================
   programs.ssh = {
     enable = true;
-    enableDefaultConfig = false;       # 新版 HM 不再自动注入默认值, 关掉弃用警告
-    # 按需开启:
-    # matchBlocks = {
-    #   "github.com" = {
-    #     hostname = "github.com";
-    #     user = "git";
-    #     identityFile = "~/.ssh/id_ed25519";
-    #   };
-    # };
+    enableDefaultConfig = false;
   };
 
   # ===========================================================================
   # 主题 — Qt / GTK / fontconfig
   # ===========================================================================
-  # ---- Qt ----
   qt = {
     enable = true;
     platformTheme.name = "gtk3";
     style.name = "kvantum";
   };
 
-  # ---- Wayland 相关环境变量 (DMS 推荐配置) ----
   systemd.user.sessionVariables = {
-    # Qt Wayland
     QT_QPA_PLATFORM = "wayland";
-    QT_QPA_PLATFORMTHEME = "gtk3";     # Qt5 平台主题
-    QT_QPA_PLATFORMTHEME_QT6 = "gtk3"; # Qt6 平台主题
+    QT_QPA_PLATFORMTHEME = "gtk3";
+    QT_QPA_PLATFORMTHEME_QT6 = "gtk3";
     QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
-
-    # Electron Wayland
     NIXOS_OZONE_WL = "1";
     ELECTRON_OZONE_PLATFORM_HINT = "auto";
-
-    # GDK (GTK) 后端
     GDK_BACKEND = "wayland";
-
-    # SDL
     SDL_VIDEO_DRIVER = "wayland";
-
-    # DMS 截图编辑器
     DMS_SCREENSHOT_EDITOR = "swappy";
   };
 
-  # ---- GTK ----
   gtk = {
     enable = true;
     font = {
@@ -296,12 +238,10 @@
     };
   };
 
-  # ---- dconf: 偏好暗色 ----
   dconf.settings = {
     "org/gnome/desktop/interface".color-scheme = "prefer-dark";
   };
 
-  # ---- Fontconfig (字体回退顺序) ----
   fonts.fontconfig = {
     enable = true;
     defaultFonts = {

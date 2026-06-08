@@ -1,14 +1,24 @@
-# Nix 构建产物
-result
-result-*
+```
+# Nix-related
+.result
+*.drv
+*.out
+.nixd/
+.nix-gcroots/
+.nix-*
 
-# 编辑器
-*.swp
-*.swo
+# Home Manager
+.home-manager/
+
+# Temporary files
+*.tmp
+*.temp
 *~
 
-# direnv
-.direnv
+# Logs
+*.log
 
-# macOS
+# OS-specific
 .DS_Store
+Thumbs.db
+```
